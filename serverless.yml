@@ -1,0 +1,128 @@
+service: pagos
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: dev
+  httpApi: 
+    cors: true
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: 
+        - arn:aws:dynamodb:us-east-1:192379196545:table/PaymentsExampleClients
+        - arn:aws:dynamodb:us-east-1:192379196545:table/PaymentsExampleEstablishments
+
+
+functions:
+  getClients:
+    handler: src/handlers/clients.getClients
+    events:
+      - httpApi:
+          method: GET
+          path: /clients
+  getClientById:
+    handler: src/handlers/clients.getClientById
+    events:
+      - httpApi:
+          method: GET
+          path: /clients/{account}
+  createClient:
+    handler: src/handlers/clients.createClient
+    events:
+      - httpApi:
+          method: POST
+          path: /clients
+  updateClientById:
+    handler: src/handlers/clients.updateClient
+    events:
+      - httpApi:
+          method: PUT
+          path: /clients/{account}
+  depositMoneyToClient:
+    handler: src/handlers/clients.depositMoneyToClient
+    events:
+      - httpApi:
+          method: PUT
+          path: /clients/deposit/{account}
+  deleteClient:
+    handler: src/handlers/clients.deleteClient
+    events:
+      - httpApi:
+          method: DELETE
+          path: /clients/{account}
+  getEstablishments:
+    handler: src/handlers/establishment.getEstablishments
+    events:
+      - httpApi:
+          method: GET
+          path: /establishment
+  createEstablishment:
+    handler: src/handlers/establishment.createEstablishment
+    events:
+      - httpApi:
+          method: POST
+          path: /establishment
+  updateEstablishmentById:
+    handler: src/handlers/establishment.updateEstablishment
+    events:
+      - httpApi:
+          method: PUT
+          path: /establishment/{account}
+  getPaymentsByClientId:
+    handler: src/handlers/payments.getPaymentsByClientId
+    events:
+      - httpApi:
+          method: GET
+          path: /payments/{account}
+  getPaymentsByEstablishmentId:
+    handler: src/handlers/payments.getPaymentsByEstablishmentId
+    events:
+      - httpApi:
+          method: GET
+          path: /payments/establishment/{account}
+  createClientPayment:
+    handler: src/handlers/payments.createClientPayment
+    events:
+      - httpApi:
+          method: PUT
+          path: /payments/{account}
+  deletePaymentById:
+    handler: src/handlers/payments.deletePayment
+    events:
+      - httpApi:
+          method: DELETE
+          path: /payments/{id}
+  
+
+resources:
+  Resources:
+    PaymentsExampleClients:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: PaymentsExampleClients
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: account
+            AttributeType: S
+        KeySchema:
+          - AttributeName: account
+            KeyType: HASH
+    PaymentsExampleEstablishments:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: PaymentsExampleEstablishments
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: account
+            AttributeType: S
+        KeySchema:
+          - AttributeName: account
+            KeyType: HASH
+
+
+plugins:
+  - serverless-offline
